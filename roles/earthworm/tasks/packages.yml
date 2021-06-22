@@ -1,0 +1,5 @@
+---
+- name: download required libraries for earthworm
+  yum:
+    name:
+     - gcc-c++

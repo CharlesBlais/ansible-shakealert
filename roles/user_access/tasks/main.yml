@@ -1,0 +1,29 @@
+---
+# tasks file for user_access
+- name: checking if user_access_default_password is set
+  assert:
+    that:
+      - user_access_default_password is defined
+    fail_msg: "variable 'user_access_default_password' must be defined"
+
+- name: ensure seismo group exists
+  group:
+    name: seismo
+
+- name: ensure following users are present
+  user:
+    name: "{{ item }}"
+    group: seismo
+    groups: wheel
+    shell: /bin/bash
+    state: present
+    update_password: on_create
+    password: "{{ user_access_default_password | password_hash('sha512') }}"
+  loop: "{{ user_access_present }}"
+
+- name: ensure following users are absent (remove content)
+  user:
+    name: "{{ item }}"
+    state: absent
+    remove: yes
+  loop: "{{ user_access_absent }}"

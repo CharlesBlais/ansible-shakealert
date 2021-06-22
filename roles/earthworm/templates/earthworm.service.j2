@@ -1,0 +1,16 @@
+[Unit]
+Description=Earthworm
+After=network.target
+
+[Service]
+User={{ earthworm_uname }}
+Group={{ earthworm_group | default(earthworm_uname) }}
+Environment=EW_INSTALL_INSTALLATION={{ earthworm_inst_id }}
+ExecStart=/bin/bash -c "source {{ earthworm_directory_bin }}/ew_linux.bash && startstop"
+Restart=always
+RestartSec=30
+StartLimitBurst=5
+StartLimitInterval=200
+
+[Install]
+WantedBy=multi-user.target

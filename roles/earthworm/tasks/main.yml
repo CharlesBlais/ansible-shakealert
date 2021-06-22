@@ -1,0 +1,28 @@
+---
+- name: checking if earthworm_inst_id is set
+  assert:
+    that:
+      - earthworm_inst_id is defined
+    fail_msg: "variable 'earthworm_inst_id' must be defined"
+    success_msg: "variable 'earthworm_inst_id' is defined: {{ earthworm_inst_id }}"
+
+- name: setup user
+  import_tasks: user.yml
+  tags:
+    - user
+
+- name: setup packages
+  import_tasks: packages.yml
+  tags:
+    - packages
+
+- name: setup earthworm under the user
+  become_user: "{{ earthworm_uname }}"
+  import_tasks: earthworm.yml
+  tags:
+    - earthworm
+
+- name: setup systemd
+  import_tasks: systemd.yml
+  tags:
+    - systemd

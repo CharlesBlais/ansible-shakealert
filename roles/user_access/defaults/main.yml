@@ -1,0 +1,6 @@
+---
+# List of users with access
+user_access_present: []
+
+# List of users with no access
+user_access_absent: []

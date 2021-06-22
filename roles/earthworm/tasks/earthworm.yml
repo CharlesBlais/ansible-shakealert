@@ -1,0 +1,88 @@
+# The following assumes we are running under the earthworm use permissions
+- name: download the package for the earthworm application
+  get_url:
+    url: "{{ earthworm_download }}"
+    dest: "{{ earthworm_directory }}"
+  register: download
+
+- name: uncompress content of the tgz file
+  unarchive:
+    src: "{{ download['dest'] }}"
+    dest: "{{ earthworm_directory }}"
+    remote_src: true
+  when: download.changed
+
+- name: create earthworm directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: true
+  loop:
+    - "{{ earthworm_directory_bin }}"
+    - "{{ earthworm_directory_params }}"
+    - "{{ earthworm_directory_log }}"
+
+- name: copy the recommended ew_linux.bash script to bin
+  copy:
+    src: "{{ earthworm_src }}/environment/ew_linux.bash"
+    dest: "{{ earthworm_directory_bin }}"
+    remote_src: true
+  notify: earthworm restart
+
+- name: setup .bashrc environment
+  blockinfile:
+    path: "{{ earthworm_directory }}/.bashrc"
+    block: |
+      export EW_INST_ID={{ earthworm_inst_id }}
+      export EW_INSTALL_INSTALLATION=$EW_INST_ID
+      source ~/run_working/bin/ew_linux.bash
+
+# Earthworm requires sourcing their configuration which prevents us from
+# making use of the ansible "make" plugin.  In order to compensate, we
+# simplify the process by looking for the bin "startstop" program and,
+# if it doesn't exist, create using shell.
+- name: Check that the somefile.conf exists
+  stat:
+    path: "{{ earthworm_src }}/bin/startstop"
+  register: stat_result
+
+- name: build the earthworm program
+  shell:
+    cmd: . ~/.bashrc && make unix
+    chdir: "{{ earthworm_src }}/src"
+  when: not stat_result.stat.exists
+  notify: earthworm restart
+
+- name: copy parameter files to the server
+  copy:
+    src: "{{ item }}"
+    dest: "{{ earthworm_directory_params }}"
+  with_fileglob: "*"
+  notify: earthworm restart
+
+- name: copy parameter file for startstop with slink2ew processes
+  template:
+    src: startstop_unix.d.j2
+    dest: "{{ earthworm_directory_params }}/startstop_unix.d"
+  notify: earthworm restart
+
+- name: for every slink2ew process, create its own parameter file
+  template:
+    src: slink2ew.d.j2
+    dest: "{{ earthworm_directory_params }}/slink2ew_{{ item.host }}.d"
+  loop: "{{ earthworm_slink2ew }}"
+  notify: earthworm restart
+
+- name: for every ew2ringserver process, create its own parameter file
+  template:
+    src: ew2ringserver.d.j2
+    dest: "{{ earthworm_directory_params }}/ew2ringserver_{{ item.host }}.d"
+  loop: "{{ earthworm_ew2ringserver }}"
+  notify: earthworm restart
+
+- name: setup auto-clean of earthworm logs using cron
+  cron:
+    name: earthworm log cleanup
+    hour: "0"
+    job: "find {{ earthworm_directory_log }}/*.log -mtime +{{ earthworm_log_retention }} -exec rm {} \\;"
+

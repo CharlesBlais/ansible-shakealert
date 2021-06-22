@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - user_access
+  tags:
+    - user_access
+
+- hosts: shakealert
+  become: true
+  roles:
+    - earthworm
+  tags:
+    - earthworm

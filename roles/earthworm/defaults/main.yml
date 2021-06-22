@@ -1,0 +1,41 @@
+---
+# defaults file for earthworm
+
+# User variables
+# --------------
+earthworm_uname: ew
+# Earthworm group ID if different then user
+# earthworm_group:
+# earthworm_gid:
+
+# Download variables
+# ------------------
+earthworm_download: http://folkworm.ceri.memphis.edu/ew-dist/v7.10.1/earthworm_7.10.1-src.tgz
+# location of the uncompressed source, make sure that matches the content of the tgz file
+earthworm_src: "{{ earthworm_directory }}/earthworm_7.10"
+
+# Structure variables
+# -------------------
+earthworm_directory: /opt/earthworm
+earthworm_directory_bin: "{{ earthworm_directory }}/run_working/bin"
+earthworm_directory_params: "{{ earthworm_directory }}/run_working/params"
+earthworm_directory_log: "{{ earthworm_directory }}/run_working/log"
+earthworm_log_retention: 30   # days
+
+# Configuration variables
+# -----------------------
+# Earthworm institue ID
+# earthworm_inst_id: null
+
+# List of IP for slink2ew process
+# ex:
+#   - host: "10.71.144.134"
+#     port: 18000
+#     stream: "XX_TXX6"
+earthworm_slink2ew: []
+
+# List of IP for ew2ringserver process
+# ex:
+#   - host: "localhost"
+#     port: 18000
+earthworm_ew2ringserver: []

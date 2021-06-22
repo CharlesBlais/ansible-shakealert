@@ -1,0 +1,16 @@
+---
+- name: ensure group exists with correct gid
+  group:
+    name: "{{ earthworm_group }}"
+    state: present
+    gid: "{{ earthworm_gid | default(omit) }}"
+  when: earthworm_group is defined
+
+- name: add the user {{ earthworm_uname }} with home {{ earthworm_directory }}
+  user:
+    name: "{{ earthworm_uname }}"
+    groups: "{{ earthworm_group | default(omit) }}"
+    home: "{{ earthworm_directory }}"
+    shell: /bin/bash
+    system: true
+    comment: earthworm

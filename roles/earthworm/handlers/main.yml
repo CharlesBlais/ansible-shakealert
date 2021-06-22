@@ -1,0 +1,5 @@
+---
+- name: earthworm restart
+  service:
+    name: earthworm
+    state: restarted
